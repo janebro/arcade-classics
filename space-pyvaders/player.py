@@ -20,10 +20,7 @@ class Player:
     ]
     PLAYER_COLOR = GREEN
     PLAYER_SIZE = (len(PLAYER_DESIGN[0]) * 5, len(PLAYER_DESIGN) * 5)
-    LIFE_ICON_SIZE = (
-        len(PLAYER_DESIGN[0]) * 2,
-        len(PLAYER_DESIGN) * 2,
-    )  # Smaller size for life icons
+    LIFE_ICON_SIZE = PLAYER_SIZE  # Make life icon the same size as player
 
     def __init__(self):
         self.original_image = self.create_player_image()

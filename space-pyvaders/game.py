@@ -23,7 +23,6 @@ class Game:
         self.create_barriers()
         self.player_destroyed = False
         self.title_screen = TitleScreen(self.screen)
-        self.lives_font = pygame.font.Font(FONT_PATH, 20)
         self.death_animation_delay = 1000  # 1 second delay after death animation
         self.death_animation_end_time = 0  # Time when death animation ends
 
@@ -237,9 +236,16 @@ class Game:
         if self.player:
             self.player.draw(self.screen)
 
+        # Draw score
         score_text = self.font.render(f"SCORE: {self.score}", True, WHITE)
-        level_text = self.font.render(f"LEVEL: {self.level}", True, WHITE)
         self.screen.blit(score_text, (10, 10))
+
+        # Draw lives just below the score
+        lives_text = self.font.render(f"LIVES: {self.player.lives}", True, WHITE)
+        self.screen.blit(lives_text, (10, 40))  # 40 pixels below the score
+
+        # Draw level
+        level_text = self.font.render(f"LEVEL: {self.level}", True, WHITE)
         self.screen.blit(level_text, (WIDTH - level_text.get_width() - 10, 10))
 
         if self.game_over:
@@ -251,15 +257,6 @@ class Game:
                 level_complete_text,
                 (WIDTH // 2 - level_complete_text.get_width() // 2, HEIGHT // 2 - 50),
             )
-
-        # Draw lives
-        for i in range(self.player.lives):
-            life_icon_rect = self.player.life_icon.get_rect()
-            life_icon_rect.bottomleft = (
-                10 + i * (life_icon_rect.width + 5),
-                HEIGHT - 10,
-            )
-            self.screen.blit(self.player.life_icon, life_icon_rect)
 
         pygame.display.flip()
 
