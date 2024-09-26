@@ -25,6 +25,7 @@ class Game:
         self.title_screen = TitleScreen(self.screen)
         self.death_animation_delay = 1000  # 1 second delay after death animation
         self.death_animation_end_time = 0  # Time when death animation ends
+        self.game_state = "TITLE"  # Add this line
 
     def create_barriers(self):
         self.barriers = []
@@ -63,7 +64,8 @@ class Game:
                 return False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return False
+                    self.game_state = "TITLE"
+                    return True
                 if (
                     event.key == pygame.K_SPACE
                     and not self.game_over
@@ -93,7 +95,7 @@ class Game:
             )  # Add score for killed enemies
 
     def update(self):
-        if self.game_over:
+        if self.game_state == "TITLE":
             return
 
         if self.level_complete:
@@ -275,23 +277,26 @@ class Game:
     def update_sfx_volume(self):
         set_sfx_volume(self.title_screen.sfx_volume)
 
-    def run(self):
-        running = True
-        while running:
-            action = self.title_screen.run()
+    def run_frame(self):
+        if self.game_state == "TITLE":
+            action = self.title_screen.run_frame()
             if action == "QUIT":
-                running = False
+                return False  # This will signal the main loop to exit
             elif action == "START_GAME":
                 self.update_sfx_volume()
                 self.reset_game()
-                self.game_loop()
-
-        pygame.quit()
-
-    def game_loop(self):
-        running = True
-        while running:
-            running = self.handle_events()
+                self.game_state = "PLAYING"
+            elif action == "OPTIONS":
+                self.game_state = "OPTIONS"
+        elif self.game_state == "OPTIONS":
+            action = self.title_screen.run_options_frame()
+            if action == "RETURN":
+                self.game_state = "TITLE"
+            elif action == "QUIT":
+                return False  # This will signal the main loop to exit
+        elif self.game_state == "PLAYING":
+            if not self.handle_events():
+                return False
             self.update()
             self.draw()
 
@@ -304,7 +309,8 @@ class Game:
                     self.level_complete = False
                     self.clear_bullets()
 
-            self.clock.tick(FPS)
+        self.clock.tick(FPS)
+        return True
 
 
 if __name__ == "__main__":

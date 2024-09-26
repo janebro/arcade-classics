@@ -1,1 +1,3 @@
 pygame==2.6.0
+uvicorn==0.23.2
+pygbag==0.7.1

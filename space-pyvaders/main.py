@@ -1,13 +1,17 @@
+import asyncio
 import pygame
 from game import Game
 
 
-def main():
+async def main():
     pygame.init()
     game = Game()
-    game.run()
+    running = True
+    while running:
+        running = game.run_frame()
+        await asyncio.sleep(0)
     pygame.quit()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

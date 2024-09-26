@@ -7,9 +7,7 @@ class TitleScreen:
         self.screen = screen
         self.font = pygame.font.Font(FONT_PATH, 36)
         self.big_font = pygame.font.Font(FONT_PATH, 72)
-        self.small_font = pygame.font.Font(
-            FONT_PATH, 24
-        )  # Add this line for the smaller font
+        self.small_font = pygame.font.Font(FONT_PATH, 24)
         self.menu_items = ["1 PLAYER GAME", "2 PLAYER GAME", "OPTIONS", "QUIT"]
         self.selected_item = 0
         self.sfx_volume = 5
@@ -53,53 +51,32 @@ class TitleScreen:
                         return "QUIT"
         return None
 
-    def run_options(self):
-        running = True
-        while running:
-            self.screen.fill(BLACK)
-            title = self.font.render("OPTIONS", True, WHITE)
-            self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+    def run_options_frame(self):
+        self.screen.fill(BLACK)
+        title = self.font.render("OPTIONS", True, WHITE)
+        self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
 
-            # Add the "PRESS ESC TO RETURN" text
-            return_text = self.small_font.render("PRESS ESC TO RETURN", True, WHITE)
-            self.screen.blit(
-                return_text, (WIDTH // 2 - return_text.get_width() // 2, 150)
-            )
+        return_text = self.small_font.render("PRESS ESC TO RETURN", True, WHITE)
+        self.screen.blit(return_text, (WIDTH // 2 - return_text.get_width() // 2, 150))
 
-            volume_text = self.font.render(
-                f"SFX Volume: {self.sfx_volume}", True, WHITE
-            )
-            self.screen.blit(
-                volume_text, (WIDTH // 2 - volume_text.get_width() // 2, 300)
-            )
+        volume_text = self.font.render(f"SFX Volume: {self.sfx_volume}", True, WHITE)
+        self.screen.blit(volume_text, (WIDTH // 2 - volume_text.get_width() // 2, 300))
 
-            pygame.display.flip()
+        pygame.display.flip()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return "QUIT"
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                    elif event.key == pygame.K_LEFT:
-                        self.sfx_volume = max(1, self.sfx_volume - 1)
-                    elif event.key == pygame.K_RIGHT:
-                        self.sfx_volume = min(10, self.sfx_volume + 1)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return "QUIT"
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return "RETURN"
+                elif event.key == pygame.K_LEFT:
+                    self.sfx_volume = max(1, self.sfx_volume - 1)
+                elif event.key == pygame.K_RIGHT:
+                    self.sfx_volume = min(10, self.sfx_volume + 1)
 
         return None
 
-    def run(self):
-        clock = pygame.time.Clock()
-        running = True
-        while running:
-            self.draw()
-            action = self.handle_events()
-            if action == "QUIT":
-                return "QUIT"
-            elif action == "START_GAME":
-                return "START_GAME"
-            elif action == "OPTIONS":
-                options_result = self.run_options()
-                if options_result == "QUIT":
-                    return "QUIT"
-            clock.tick(60)
+    def run_frame(self):
+        self.draw()
+        return self.handle_events()
