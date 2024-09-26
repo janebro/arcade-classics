@@ -8,7 +8,8 @@ class TitleScreen:
         self.font = pygame.font.Font(FONT_PATH, 36)
         self.big_font = pygame.font.Font(FONT_PATH, 72)
         self.small_font = pygame.font.Font(FONT_PATH, 24)
-        self.menu_items = ["1 PLAYER GAME", "2 PLAYER GAME", "OPTIONS", "QUIT"]
+        # Remove "QUIT" from the menu items
+        self.menu_items = ["1 PLAYER GAME", "2 PLAYER GAME", "OPTIONS"]
         self.selected_item = 0
         self.sfx_volume = 5
 
@@ -36,7 +37,7 @@ class TitleScreen:
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return "QUIT"
+                return "QUIT"  # Keep this for consistency, though it won't be used
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     self.selected_item = (self.selected_item - 1) % len(self.menu_items)
@@ -47,8 +48,7 @@ class TitleScreen:
                         return "START_GAME"
                     elif self.menu_items[self.selected_item] == "OPTIONS":
                         return "OPTIONS"
-                    elif self.menu_items[self.selected_item] == "QUIT":
-                        return "QUIT"
+                    # Remove the "QUIT" option handling
         return None
 
     def run_options_frame(self):

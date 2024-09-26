@@ -280,9 +280,7 @@ class Game:
     def run_frame(self):
         if self.game_state == "TITLE":
             action = self.title_screen.run_frame()
-            if action == "QUIT":
-                return False  # This will signal the main loop to exit
-            elif action == "START_GAME":
+            if action == "START_GAME":
                 self.update_sfx_volume()
                 self.reset_game()
                 self.game_state = "PLAYING"
@@ -292,11 +290,9 @@ class Game:
             action = self.title_screen.run_options_frame()
             if action == "RETURN":
                 self.game_state = "TITLE"
-            elif action == "QUIT":
-                return False  # This will signal the main loop to exit
         elif self.game_state == "PLAYING":
             if not self.handle_events():
-                return False
+                self.game_state = "TITLE"  # Return to title screen instead of quitting
             self.update()
             self.draw()
 
@@ -310,7 +306,7 @@ class Game:
                     self.clear_bullets()
 
         self.clock.tick(FPS)
-        return True
+        return True  # Always return True to keep the game running
 
 
 if __name__ == "__main__":
