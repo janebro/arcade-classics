@@ -14,6 +14,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+LIGHT_GRAY = (200, 200, 200)
 
 # Game settings
 FPS = 60
@@ -83,3 +84,7 @@ def set_sfx_volume(volume):
             sound.set_volume(volume_scale)
     if LEVEL_COMPLETE_SOUND:
         LEVEL_COMPLETE_SOUND.set_volume(volume_scale)
+
+
+# Add this near the other game settings
+INITIAL_LIVES = 3

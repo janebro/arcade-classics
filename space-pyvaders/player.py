@@ -1,6 +1,14 @@
 import pygame
 import random  # Add this import
-from constants import WIDTH, HEIGHT, GREEN, PLAYER_SPEED, PLAYER_SHOOT_COOLDOWN
+from constants import (
+    WIDTH,
+    HEIGHT,
+    GREEN,
+    PLAYER_SPEED,
+    PLAYER_SHOOT_COOLDOWN,
+    INITIAL_LIVES,
+    EXPLOSION_SOUND,  # Add this import
+)
 
 
 class Player:
@@ -12,9 +20,15 @@ class Player:
     ]
     PLAYER_COLOR = GREEN
     PLAYER_SIZE = (len(PLAYER_DESIGN[0]) * 5, len(PLAYER_DESIGN) * 5)
+    LIFE_ICON_SIZE = (
+        len(PLAYER_DESIGN[0]) * 2,
+        len(PLAYER_DESIGN) * 2,
+    )  # Smaller size for life icons
 
     def __init__(self):
-        self.image = self.create_player_image()
+        self.original_image = self.create_player_image()
+        self.image = self.original_image.copy()
+        self.life_icon = self.create_life_icon()
         self.rect = self.image.get_rect()
         self.reset_position()
         self.speed = PLAYER_SPEED
@@ -22,10 +36,18 @@ class Player:
         self.is_dying = False
         self.death_frame = 0
         self.max_death_frames = 8  # Adjust for longer/shorter animation
+        self.lives = INITIAL_LIVES
+        self.death_animation_complete = False  # Add this line
 
     def create_player_image(self):
-        pixel_size = self.PLAYER_SIZE[0] // len(self.PLAYER_DESIGN[0])
-        image = pygame.Surface(self.PLAYER_SIZE, pygame.SRCALPHA)
+        return self._create_image(self.PLAYER_SIZE)
+
+    def create_life_icon(self):
+        return self._create_image(self.LIFE_ICON_SIZE)
+
+    def _create_image(self, size):
+        pixel_size = size[0] // len(self.PLAYER_DESIGN[0])
+        image = pygame.Surface(size, pygame.SRCALPHA)
         for y, row in enumerate(self.PLAYER_DESIGN):
             for x, pixel in enumerate(row):
                 if pixel != " ":
@@ -45,7 +67,7 @@ class Player:
         for y, row in enumerate(self.PLAYER_DESIGN):
             for x, pixel in enumerate(row):
                 if pixel != " ":
-                    if random.random() > frame / self.max_death_frames:
+                    if random.random() > (frame + 1) / self.max_death_frames:
                         pygame.draw.rect(
                             image,
                             self.PLAYER_COLOR,
@@ -57,7 +79,12 @@ class Player:
         if self.is_dying:
             self.death_frame += 1
             if self.death_frame >= self.max_death_frames:
-                return True  # Player is fully destroyed
+                self.is_dying = False
+                self.death_frame = 0
+                self.death_animation_complete = (
+                    True  # Set this flag when animation completes
+                )
+                return True  # Player death animation complete
             self.image = self.create_death_frame(self.death_frame)
             return False
 
@@ -78,7 +105,11 @@ class Player:
         return False
 
     def hit(self):
-        self.is_dying = True
+        if not self.is_dying:
+            self.is_dying = True
+            self.death_frame = 0
+            if EXPLOSION_SOUND:
+                EXPLOSION_SOUND.play()  # Play the explosion sound
 
     def can_shoot(self):
         return pygame.time.get_ticks() - self.last_shot_time > PLAYER_SHOOT_COOLDOWN
@@ -88,3 +119,13 @@ class Player:
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+
+    def lose_life(self):
+        self.lives -= 1
+        return self.lives > 0
+
+    def reset(self):
+        self.reset_position()
+        self.is_dying = False
+        self.death_frame = 0
+        self.image = self.original_image.copy()  # Reset the image to its original state

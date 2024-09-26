@@ -4,7 +4,7 @@ from enemy import EnemyFleet
 from bullet import Bullet
 from constants import *
 from barrier import Barrier
-from title_screen import TitleScreen  # Add this import
+from title_screen import TitleScreen
 
 
 class Game:
@@ -21,8 +21,11 @@ class Game:
         self.flash_count = 0
         self.max_flashes = 5
         self.create_barriers()
-        self.player_destroyed = False  # Add this line
-        self.title_screen = TitleScreen(self.screen)  # Add this line
+        self.player_destroyed = False
+        self.title_screen = TitleScreen(self.screen)
+        self.lives_font = pygame.font.Font(FONT_PATH, 20)
+        self.death_animation_delay = 1000  # 1 second delay after death animation
+        self.death_animation_end_time = 0  # Time when death animation ends
 
     def create_barriers(self):
         self.barriers = []
@@ -49,7 +52,8 @@ class Game:
         self.level_complete_time = 0
         self.flash_count = 0
         self.create_barriers()
-        self.player_destroyed = False  # Add this line
+        self.player_destroyed = False
+        self.player.lives = INITIAL_LIVES
 
     def create_enemy_fleet(self):
         self.enemy_fleet = EnemyFleet(self.level)
@@ -91,14 +95,27 @@ class Game:
 
     def update(self):
         if self.game_over:
-            if self.player and self.player.is_dying:
-                if self.player.update(self.barriers):
-                    self.player_destroyed = True
-                    self.player = None  # Remove player when animation is complete
             return
 
         if self.level_complete:
-            self.clear_bullets()  # Clear bullets during level complete state
+            self.clear_bullets()
+            return
+
+        if self.player.is_dying:
+            if self.player.update(self.barriers):
+                self.death_animation_end_time = (
+                    pygame.time.get_ticks()
+                )  # Record the end time
+                self.player.death_animation_complete = True  # Set the flag
+            return
+
+        if self.player.death_animation_complete:
+            current_time = pygame.time.get_ticks()
+            if (
+                current_time - self.death_animation_end_time
+                > self.death_animation_delay
+            ):
+                self.handle_player_death()
             return
 
         self.player.update(self.barriers)
@@ -181,14 +198,25 @@ class Game:
         self.enemy_fleet.check_barrier_collisions(self.barriers)
 
     def trigger_game_over(self):
-        if not self.game_over:
+        if not self.game_over and not self.player.is_dying:
+            self.player.hit()
+
+    def handle_player_death(self):
+        if self.player.lose_life():
+            # Player still has lives left
+            self.player.reset()
+            self.enemy_fleet.clear_all_enemies()
+            self.bullets.clear()
+            self.enemy_fleet.bullets.clear()
+            self.create_enemy_fleet()
+            self.player.death_animation_complete = False  # Reset the flag
+        else:
+            # No lives left, game over
             self.game_over = True
-            if self.player:
-                self.player.hit()
-            if EXPLOSION_SOUND:
-                EXPLOSION_SOUND.play()
-            self.enemy_fleet.clear_all_enemies()  # Clear all enemies
-            self.bullets.clear()  # Clear player bullets
+            self.player.death_animation_complete = False  # Reset the flag
+            self.enemy_fleet.clear_all_enemies()
+            self.bullets.clear()
+            self.enemy_fleet.bullets.clear()
 
     def clear_screen(self):
         self.enemy_fleet.enemies.clear()
@@ -224,8 +252,14 @@ class Game:
                 (WIDTH // 2 - level_complete_text.get_width() // 2, HEIGHT // 2 - 50),
             )
 
-        for barrier in self.barriers:
-            barrier.draw(self.screen)
+        # Draw lives
+        for i in range(self.player.lives):
+            life_icon_rect = self.player.life_icon.get_rect()
+            life_icon_rect.bottomleft = (
+                10 + i * (life_icon_rect.width + 5),
+                HEIGHT - 10,
+            )
+            self.screen.blit(self.player.life_icon, life_icon_rect)
 
         pygame.display.flip()
 
